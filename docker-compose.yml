@@ -86,24 +86,6 @@ services:
       restart_policy:
           condition: on-failure
 
-  alertmanager:
-    image: prom/alertmanager
-    ports:
-      - 9093:9093
-    volumes:
-      - "./alertmanager/:/etc/alertmanager/"
-    networks:
-      - monitor-net
-    command:
-      - '--config.file=/etc/alertmanager/config.yml'
-      - '--storage.path=/alertmanager'
-    deploy:
-      placement:
-        constraints:
-           - node.role==manager
-      restart_policy:
-        condition: on-failure
-
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
     volumes:
