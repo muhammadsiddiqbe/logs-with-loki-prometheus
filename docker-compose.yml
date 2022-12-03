@@ -58,7 +58,7 @@ services:
       - cadvisor
 #      - pushgateway
     networks:
-      - monitor-net
+      - loki
     deploy:
       placement:
         constraints:
@@ -80,7 +80,7 @@ services:
     ports:
       - 9100:9100
     networks:
-      - monitor-net
+      - loki
     deploy:
       mode: global
       restart_policy:
@@ -96,7 +96,7 @@ services:
     ports:
       - 8080:8080
     networks:
-      - monitor-net
+      - loki
     deploy:
       mode: global
       restart_policy:
@@ -109,4 +109,3 @@ volumes:
 
 networks:
   loki:
-  monitor-net:
