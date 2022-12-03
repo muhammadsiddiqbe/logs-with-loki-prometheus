@@ -16,7 +16,6 @@ services:
     # network_mode: host
     networks:
       - loki
-      - main-frontend_default
     # logging: *loki-logging
 
   promtail:
@@ -29,7 +28,6 @@ services:
 
     networks:
       - loki
-      - main-frontend_default
     # logging: *loki-logging
 
   grafana:
@@ -41,7 +39,6 @@ services:
       - ./config/grafana/provisioning/:/etc/grafana/provisioning/
     networks:
       - loki
-      - main-frontend_default
     environment:
       GF_SECURITY_ADMIN_PASSWORD: 1234
     # logging: *loki-logging
@@ -66,7 +63,6 @@ services:
       - cadvisor
     networks:
       - loki
-      - main-frontend_default
     # network_mode: host
     deploy:
       placement:
@@ -92,7 +88,6 @@ services:
 
     networks:
       - loki
-      - main-frontend_default
     deploy:
       mode: global
       restart_policy:
@@ -109,7 +104,6 @@ services:
       - 8080:8080
     networks:
       - loki
-      - main-frontend_default
     deploy:
       mode: global
       restart_policy:
@@ -123,4 +117,3 @@ volumes:
 
 networks:
   loki:
-  main-frontend_default:
