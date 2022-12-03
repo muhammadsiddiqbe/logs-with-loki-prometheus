@@ -21,7 +21,7 @@ This will start Grafana, Loki, Promtail and a Sample demo app using [ealen/echo-
 
 ## Gettings the logs
 
-You can access your Grafana Dashboard, by going to `localhost:3000` and login with `admin/testloki`.
+You can access your Grafana Dashboard, by going to `localhost:3000` and login with `admin/1234`.
 
 The Loki datasource should already configured: (you can check it by navigating to: http://localhost:3000/datasources).
 
