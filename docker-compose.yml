@@ -3,7 +3,7 @@ version: "3.7"
 x-logging: &loki-logging
   driver: json-file
   options:
-    tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"    
+    tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
 
 services:
   loki:
@@ -15,7 +15,7 @@ services:
     command: -config.file=/mnt/config/loki-config.yaml
     networks:
       - loki
-    logging: *loki-logging  
+    logging: *loki-logging
 
   promtail:
     image: grafana/promtail:2.2.1
@@ -25,32 +25,106 @@ services:
     command: -config.file /mnt/config/promtail-config.yaml
     networks:
       - loki
-    logging: *loki-logging  
+    logging: *loki-logging
 
   grafana:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
-    volumes: 
+    volumes:
       - grafana-data:/var/lib/grafana
       - ./config/grafana/provisioning/:/etc/grafana/provisioning/
     networks:
       - loki
     environment:
       GF_SECURITY_ADMIN_PASSWORD: testloki
-    logging: *loki-logging    
+    logging: *loki-logging
 
-  demo-app:
-    image: ealen/echo-server
-    ports: 
-        - "3001:80"   
+  prometheus:
+    image: prom/prometheus:v2.36.2
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    ports:
+      - 9090:9090
+    depends_on:
+      - cadvisor
+#      - pushgateway
     networks:
-      - loki
-    logging: *loki-logging  
+      - monitor-net
+    deploy:
+      placement:
+        constraints:
+          - node.role==manager
+      restart_policy:
+        condition: on-failure
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - 9100:9100
+    networks:
+      - monitor-net
+    deploy:
+      mode: global
+      restart_policy:
+          condition: on-failure
+
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - 9093:9093
+    volumes:
+      - "./alertmanager/:/etc/alertmanager/"
+    networks:
+      - monitor-net
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    deploy:
+      placement:
+        constraints:
+           - node.role==manager
+      restart_policy:
+        condition: on-failure
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - 8080:8080
+    networks:
+      - monitor-net
+    deploy:
+      mode: global
+      restart_policy:
+          condition: on-failure
+
 
 volumes:
-  grafana-data: 
+  grafana-data:
+  prometheus_data:
 
 networks:
   loki:
-
+  monitor-net:
