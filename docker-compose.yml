@@ -22,7 +22,8 @@ services:
     image: grafana/promtail:2.2.1
     volumes:
       - ./config/loki/promtail-config.yaml:/mnt/config/promtail-config.yaml
-      - /var/lib/docker/containers:/host/containers
+      - /var/lib/docker/containers:/var/lib/docker/containers
+
     command: -config.file /mnt/config/promtail-config.yaml
     # network_mode: host
 
